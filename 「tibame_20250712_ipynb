@@ -1,0 +1,212 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/alexiswang10/Tibame_online0616/blob/main/%E3%80%8Ctibame_20250712_ipynb\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "DtGDZjGfMBs3"
+      },
+      "outputs": [],
+      "source": [
+        "# os.path\n",
+        "import os\n",
+        "if not os.path.exists(\"a\"):\n",
+        "    os.makedirs(\"a\")"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# 第三方函式庫: requests\n",
+        "import requests\n",
+        "\n",
+        "url = \"https://tabelog.com/tw/tokyo/rstLst/?SrtT=rt\"\n",
+        "h = {\n",
+        "    \"User-Agent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0\",\n",
+        "}\n",
+        "# urlopen -> requests.get\n",
+        "resp = requests.get(url, headers=h)\n",
+        "# content = resp.read()\n",
+        "content = resp.text\n",
+        "print(type(content))"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "XxG5qG6LOuG4",
+        "outputId": "0d33d635-377c-48fa-95ce-6a0ebcd08829"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "<class 'str'>\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "resp.request.headers\n",
+        "# resp.status_code"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "9esidlxwRCwj",
+        "outputId": "cd582c2d-c62a-4467-d419-9e1dfda42413"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "{'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', 'Accept-Encoding': 'gzip, deflate, zstd', 'Accept': '*/*', 'Connection': 'keep-alive'}"
+            ]
+          },
+          "metadata": {},
+          "execution_count": 10
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import requests\n",
+        "\n",
+        "url = \"https://i.imgur.com/OSwXeuz.jpeg\"\n",
+        "h = {\n",
+        "    \"User-Agent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0\",\n",
+        "}\n",
+        "# !!!!!! 如果非純文字: stream=True\n",
+        "resp = requests.get(url, headers=h, stream=True)\n",
+        "content = resp.raw.read()\n",
+        "with open(\"img.jpeg\", \"wb\") as f:\n",
+        "    f.write(content)\n",
+        "print(type(content))"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "hV_ErMZRTJSG",
+        "outputId": "0eed9614-c4bc-45ac-9737-d60bf90e81cd"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "<class 'bytes'>\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import requests\n",
+        "import json\n",
+        "import pandas as pd\n",
+        "\n",
+        "url = \"https://www.thsrc.com.tw/TimeTable/Search\"\n",
+        "payload ={\n",
+        "    \"SearchType\":\"S\",\n",
+        "    \"Lang\":\"TW\",\n",
+        "    \"StartStation\":\"NanGang\",\n",
+        "    \"EndStation\":\"ZuoYing\",\n",
+        "    \"OutWardSearchDate\":\"2025/07/12\",\n",
+        "    \"OutWardSearchTime\":\"10:00\",\n",
+        "    \"ReturnSearchDate\":\"2025/07/12\",\n",
+        "    \"ReturnSearchTime\":\"10:00\",\n",
+        "    \"DiscountType\":\"\",\n",
+        "}\n",
+        "resp = requests.post(url, payload)\n",
+        "content = resp.text\n",
+        "content_converted = json.loads(content)\n",
+        "datas = content_converted[\"data\"]\n",
+        "departue_train_item = datas[\"DepartureTable\"][\"TrainItem\"]\n",
+        "df = pd.DataFrame(departue_train_item)\n",
+        "df.to_csv(\"thsrc.csv\", encoding=\"utf-8\")"
+      ],
+      "metadata": {
+        "id": "bBQrtMYiTZAi"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import os\n",
+        "import time\n",
+        "import urllib.request as req\n",
+        "\n",
+        "\n",
+        "from selenium import webdriver\n",
+        "from selenium.webdriver.common.by import By\n",
+        "from selenium.webdriver.common.keys import Keys\n",
+        "\n",
+        "import undetected_chromedriver as uc\n",
+        "\n",
+        "\n",
+        "# 如果你是MAC, 遇到SSL Certificate Failed: 就加這兩行\n",
+        "import ssl\n",
+        "ssl._create_default_https_context = ssl._create_unverified_context\n",
+        "\n",
+        "# 你要把你所有的平常動作模擬在這裡\n",
+        "if __name__ == '__main__':\n",
+        "    driver = uc.Chrome(use_subprocess=False)\n",
+        "    driver.get(\"https://www.google.com\")\n",
+        "    driver.maximize_window()\n",
+        "\n",
+        "    # bs4: find find_all\n",
+        "    # selenium: find_element  find_elements\n",
+        "    # By.TAG_NAME By.CLASS_NAME By.ID\n",
+        "    e = driver.find_element(By.CLASS_NAME, \"gLFyf\")\n",
+        "    # click() send_keys()\n",
+        "    e.send_keys(\"吉伊卡哇\")\n",
+        "    e.send_keys(Keys.ENTER)\n",
+        "\n",
+        "    time.sleep(3)"
+      ],
+      "metadata": {
+        "id": "n-sm-3gwpjWp"
+      },
+      "execution_count": null,
+      "outputs": []
+    }
+  ]
+}
